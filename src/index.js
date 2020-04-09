@@ -306,7 +306,7 @@ module.exports = class KeywordProcessor {
 		return keywordsExtracted;
 	}
 
-	replaceKeywords(sentence) {
+	replaceKeywords(sentence, replacements) {
 		/*
 			Args - 
 				sentence (String): Line of text where we will search for keywords
@@ -325,6 +325,7 @@ module.exports = class KeywordProcessor {
 		let currentDictRef = this.keywordTrieDict;
 		let currentWhiteSpace = '';
 		let sequenceEndPos = 0;
+		let prevSafeWord;
 		let idx = 0;
 
 		while (idx < sentenceLength) {
@@ -393,6 +394,7 @@ module.exports = class KeywordProcessor {
 					currentDictRef = this.keywordTrieDict;
 
 					if (longestSequenceFound) {
+						if(replacements) replacements[longestSequenceFound] = prevSafeWord;
 						newSentence += longestSequenceFound + currentWhiteSpace;
 						currentWord = '';
 						currentWhiteSpace = '';
@@ -408,8 +410,10 @@ module.exports = class KeywordProcessor {
 					currentWhiteSpace = '';
 				}
 			} else if (currentDictRef.has(char)) {
+				prevSafeWord = currentWord;
 				currentDictRef = currentDictRef.get(char);
 			} else {
+				prevSafeWord = currentWord;
 				currentDictRef = this.keywordTrieDict;
 				idy = idx + 1;
 
@@ -431,6 +435,7 @@ module.exports = class KeywordProcessor {
 				if (currentDictRef.has(this._keyword)) {
 					sequenceFound = currentDictRef.get(this._keyword);
 					newSentence += sequenceFound;
+					if(replacements) replacements[sequenceFound] = prevSafeWord;
 				} else {
 					newSentence += currentWord;
 				}
